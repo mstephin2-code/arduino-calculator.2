@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Arduino Keypad Calculator</title>
+
+<style>
+    body {
+        background: #e6e6e6;
+        font-family: Arial;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 40px;
+    }
+
+    /* LCD Display */
+    .lcd {
+        width: 320px;
+        height: 80px;
+        background: #3b6e22;
+        border: 6px solid #0f2608;
+        border-radius: 5px;
+        color: #d5ffcc;
+        font-size: 32px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 5px;
+        margin-bottom: 25px;
+    }
+
+    /* Keypad grid */
+    .keypad {
+        display: grid;
+        grid-template-columns: repeat(4, 80px);
+        gap: 10px;
+    }
+
+    button {
+        width: 80px;
+        height: 80px;
+        font-size: 28px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .num { background: #3a82ff; color: white; }
+    .op  { background: #ff4d4d; color: white; }
+</style>
+</head>
+
+<body>
+
+<h1>Arduino Calculator Web Version</h1>
+
+<div class="lcd" id="lcd">0</div>
+
+<div class="keypad">
+    <button class="num">1</button>
+    <button class="num">2</button>
+    <button class="num">3</button>
+    <button class="op">+</button>
+
+    <button class="num">4</button>
+    <button class="num">5</button>
+    <button class="num">6</button>
+    <button class="op">-</button>
+
+    <button class="num">7</button>
+    <button class="num">8</button>
+    <button class="num">9</button>
+    <button class="op">*</button>
+
+    <button class="num">.</button>
+    <button class="num">0</button>
+    <button class="op">=</button>
+    <button class="op">/</button>
+</div>
+
+<script>
+let memory = "";
+let current = "";
+let operation = "";
+
+function calculate(op, left, right) {
+    left = Number(left);
+    right = Number(right);
+    switch (op) {
+        case '+': return left + right;
+        case '-': return left - right;
+        case '*': return left * right;
+        case '/': return right === 0 ? "ERR" : left / right;
+    }
+}
+
+const lcd = document.getElementById("lcd");
+
+document.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const key = btn.innerText;
+
+        // Negative number at start
+        if (key === "-" && current === "" && memory === "" && !operation) {
+            current = "-";
+            lcd.textContent = current;
+            return;
+        }
+
+        if ("+-*/".includes(key)) {
+            if (!operation) {
+                memory = current;
+                current = "";
+            }
+            operation = key;
+            lcd.textContent = memory + " " + operation;
+            return;
+        }
+
+        if (key === "=") {
+            if (!operation) return;
+            const result = calculate(operation, memory, current);
+            lcd.textContent = result;
+            memory = result.toString();
+            current = "";
+            return;
+        }
+
+        // prevent multiple decimals
+        if (key === "." && current.includes(".")) return;
+
+        if (current === "0" && key !== ".")
+            current = key;
+        else
+            current += key;
+
+        lcd.textContent = current;
+    });
+});
+</script>
+
+</body>
+</html>
